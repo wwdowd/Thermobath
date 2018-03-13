@@ -1,3 +1,10 @@
+# NOTES: based on Luke Miller's code for Cole Parmer bath. 
+#ONLY OPTION 0 (constant temperature) HAS BEEN UPDATED
+#Need to remove "float" from other options for correct format
+#WWD 12Mar2018
+#
+
+
 import time
 import serial # from http://pyserial.sourceforge.net/pyserial.html
               # beginner's install instructions for Windows here:
@@ -102,6 +109,8 @@ elif prog == "2":
 
 if prog == "0":
         flag = False # set the while-loop flag
+        bath.write("SO 1\r")# set status of bath to on/run
+        response=bath.readline()
         while flag != True:
             print "Setting constant temperature: %2.2f C" % set_temp
             # Assemble the command to send to the water bath
@@ -125,7 +134,8 @@ if prog == "1":
         # The first step will be to set the initial temperature on the water  
         # bath and wait around until it reaches that temperature.
         flag = False # set the while-loop flag
-
+        bath.write("SO 1\r")# set status of bath to on/run
+        response=bath.readline()
         while flag != True:
             print "Setting initial temperature: %2.2f C" % init_temp
             # Assemble the command to send to the water bath
@@ -169,6 +179,8 @@ if prog == "1":
     # above. Query the water bath to find its current setpoint and use that 
     # value as the init_temp
 if prog == "2":
+    bath.write("SO 1\r")# set status of bath to on/run
+    response=bath.readline()
     bath.write("RS\r") # Query setpoint
     response = float(bath.readline()) # Read setpoint from bath
     init_temp = response # Set init_temp 
