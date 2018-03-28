@@ -15,9 +15,9 @@ import sys # for user input
 # recommend 19200 baud, 8-N-1, no flow control. No linefeeds (\n) should be
 # used in the communications with the water bath, only carriage returns (\r). 
 # Useful commands for the water bath: 
-# RS = get current setpoint temperature
-# RT = get current internal bath temperature
-# SSxxx.xx\r = change bath setpoint (i.e. SS025.50, units of degrees Celsius)
+# RS\r = get current setpoint temperature
+# RT\r = get current internal bath temperature
+# SS xx.xx\r = change bath setpoint (i.e. SS 25.50, units of degrees Celsius)
 # SE1 = turn on command echo. It seems counterintuitive, but this seems to be
 #         necessary for this script to run.
 
@@ -29,7 +29,7 @@ import sys # for user input
 #if running python from cygwin use this set of commands to figure out the port:
 # import serial.tools.list_ports
 # print([comport.device for comport in serial.tools.list_ports.comports()])
-# for example on Dowd Mytilus lapt it returns ['/dev/ttyS9']
+# for example on Dowd Mytilus laptop it returns ['/dev/ttyS9']
 try: 
     bath = serial.Serial(
                         '/dev/ttyS9',  #COM4
@@ -85,7 +85,7 @@ elif prog == "1":
         init_temp = raw_input("Enter the starting temperature (C): ")
         init_temp = float(init_temp) # Convert to float
 
-        target_temp = raw_input("Enter the target temperature (C): ")
+        target_temp = raw_input("Enter the target/peak temperature (C): ")
         target_temp = float(target_temp) # convert to float
         
         rise_rate = raw_input("Enter temperature ramp rate (C per hour): ")
@@ -100,7 +100,7 @@ elif prog == "1":
         end_temp = raw_input("Enter the ending temperature (C): ")
         end_temp = float(end_temp)
 elif prog == "2":
-        target_temp = raw_input("Enter the target temperature (C): ")
+        target_temp = raw_input("Enter the target/peak temperature (C): ")
         target_temp = float(target_temp) # convert to float
         
         rise_rate = raw_input("Enter temperature ramp rate (C per hour): ")
@@ -122,7 +122,7 @@ if prog == "0":
             # Now check that the set point worked
             bath.write("RS\r")
             response = bath.readline()
-            new_point = float(response[1:5])
+            new_point = float(response[0:5])
             if response == set_temp:
                 print "Setpoint set: %2.2f C" % response
                 flag = True  # set True to kill while loop
@@ -139,14 +139,18 @@ if prog == "1":
         while flag != True:
             print "Setting initial temperature: %2.2f C" % init_temp
             # Assemble the command to send to the water bath
-            command = "SS0" + "%2.2f\r" % init_temp 
+            command = "SS " + "%2.2f\r" % init_temp 
             bath.write(command)
             response = bath.readline() # always read the response to clear 
                                        # the buffer
             time.sleep(0.01)
             # Now check that the set point worked
             bath.write("RS\r")
-            response = float(bath.readline())
+            response = bath.readline()
+            #print response #24.00C
+            response = float(response[0:5])
+            print "Init-temp = %2.2f C" % init_temp
+            print "Response = %2.2f C" % response
             if response == init_temp:
                 print "Setpoint set: %2.2f C" % response
                 flag = True  # set True to kill while loop
@@ -157,7 +161,8 @@ if prog == "1":
         while flag != True:
             time.sleep(5)
             bath.write("RT\r")  # request current bath internal temperature
-            response = float(bath.readline())
+            response = bath.readline()
+            response = float(response[0:5])
             print "Current bath temp: %2.2f C" % response
             # When the bath temperature gets within 0.05 of the target, we're 
             # close enough
@@ -169,9 +174,10 @@ if prog == "1":
         print "****************************************************"
         print "Initial temperature reached"
         print ""
-        junk = raw_input("Press return to start temperature ramp")
+        junk = raw_input("Press Enter/Return to start temperature ramp")
         print "Starting temperature ramp"
         print "****************************************************"
+        prog = "2" #hitting Enter moves us to prog 2 with parameters defined above
 
 
     ############################################################################
@@ -182,7 +188,8 @@ if prog == "2":
     bath.write("SO 1\r")# set status of bath to on/run
     response=bath.readline()
     bath.write("RS\r") # Query setpoint
-    response = float(bath.readline()) # Read setpoint from bath
+    response = bath.readline()
+    response = float(response[0:5]) # Read setpoint from bath
     init_temp = response # Set init_temp 
 
     ############################################################################
@@ -214,9 +221,10 @@ if prog == "2":
             
     prev_time = time.time() # get starting time (in seconds)
     bath.write("RS\r") # get current setpoint
-    current_set = float(bath.readline()) # always read response to clear buffer
+    current_set = bath.readline() # always read response to clear buffer
+    current_set = float(current_set[0:5])
     current_set = current_set + rise_rate_m # add temp step to current setpoint
-    command = "SS0" + "%2.2f\r" % current_set 
+    command = "SS " + "%2.2f\r" % current_set 
     bath.write(command) # change set point
     response = bath.readline()
     
@@ -230,7 +238,7 @@ if prog == "2":
             prev_time = new_time # update to new time
             current_set = current_set + rise_rate_m # add temp step to setpoint
             if current_set < target_temp and not decrease_flag:
-                command = "SS0%2.2f\r" % current_set
+                command = "SS %2.2f\r" % current_set
                 bath.write(command) # update water bath setpoint
                 response = bath.readline()
                 # Calculate remaining temperature to cover
@@ -255,7 +263,7 @@ if prog == "2":
                 # this while loop
                 current_set = target_temp # set current_set to the final 
                                           # target_temp
-                command = "SS0%2.2f\r" % current_set
+                command = "SS %2.2f\r" % current_set
                 bath.write(command)
                 response = bath.readline() # read line to clear buffer
                 flag = True # set flag True to kill while loop
@@ -263,7 +271,7 @@ if prog == "2":
             elif current_set > target_temp and decrease_flag:
                 # The temperature should be ramped downward when decrease_flag
                 # is True
-                command = "SS0%2.2f\r" % current_set
+                command = "SS %2.2f\r" % current_set
                 bath.write(command) # update water bath setpoint
                 response = bath.readline()
                 # Calculate remaining temperature to cover
@@ -290,7 +298,7 @@ if prog == "2":
                 # True to kill this while loop 
                 current_set = target_temp # set current_set to the final 
                                           # target_temp
-                command = "SS0%2.2f\r" % current_set
+                command = "SS %2.2f\r" % current_set
                 bath.write(command)
                 response = bath.readline() # read line to clear buffer
                 flag = True # set flag True to kill while loop
@@ -302,7 +310,8 @@ if prog == "2":
     while flag != True:
         time.sleep(1)
         bath.write("RT\r") # Query current bath temperature
-        response = float(bath.readline())
+        response = bath.readline()
+        response = float(response[0:5])
         print "Current temperature: %2.2f C" % response
         if (abs(response - target_temp) < 0.05):
             print "**************************************************"
@@ -371,9 +380,10 @@ if prog == "2":
             
     prev_time = time.time() # get starting time (in seconds)
     bath.write("RS\r") # get current setpoint
-    current_set = float(bath.readline()) # always read response to clear buffer
+    current_set = bath.readline() # always read response to clear buffer
+    current_set = float(current_set[0:5])
     current_set = current_set + fall_rate_m # add temp step to current setpoint
-    command = "SS0" + "%2.2f\r" % current_set 
+    command = "SS " + "%2.2f\r" % current_set 
     bath.write(command) # change set point
     response = bath.readline()
     
@@ -387,7 +397,7 @@ if prog == "2":
             prev_time = new_time # update to new time
             current_set = current_set + fall_rate_m # add temp step to setpoint
             if current_set < end_temp and not decrease_flag:
-                command = "SS0%2.2f\r" % current_set
+                command = "SS %2.2f\r" % current_set
                 bath.write(command) # update water bath setpoint
                 response = bath.readline()
                 # Calculate remaining temperature to cover
@@ -412,7 +422,7 @@ if prog == "2":
                 # this while loop
                 current_set = end_temp # set current_set to the final 
                                           # target_temp
-                command = "SS0%2.2f\r" % current_set
+                command = "SS %2.2f\r" % current_set
                 bath.write(command)
                 response = bath.readline() # read line to clear buffer
                 flag = True # set flag True to kill while loop
@@ -420,7 +430,7 @@ if prog == "2":
             elif current_set > end_temp and decrease_flag:
                 # The temperature should be ramped downward when decrease_flag
                 # is True
-                command = "SS0%2.2f\r" % current_set
+                command = "SS %2.2f\r" % current_set
                 bath.write(command) # update water bath setpoint
                 response = bath.readline()
                 # Calculate remaining temperature to cover
@@ -447,7 +457,7 @@ if prog == "2":
                 # True to kill this while loop 
                 current_set = end_temp # set current_set to the final 
                                           # target_temp
-                command = "SS0%2.2f\r" % current_set
+                command = "SS %2.2f\r" % current_set
                 bath.write(command)
                 response = bath.readline() # read line to clear buffer
                 flag = True # set flag True to kill while loop
@@ -459,7 +469,8 @@ if prog == "2":
     while flag != True:
         time.sleep(1)
         bath.write("RT\r") # Query current bath temperature
-        response = float(bath.readline())
+        response = bath.readline()
+        response = float(response[0:5])
         print "Current temperature: %2.2f C" % response
         if (abs(response - end_temp) < 0.05):
             print "**************************************************"
