@@ -1,6 +1,7 @@
 # NOTES: Originally based on Luke Miller's code for Cole Parmer bath. 
 # TODO: parallelize for 8 baths
-# TODO: 
+# TODO: Read remote temperature probe rather than bath temp
+# TODO: Set operation to remote probe
 #Needed to remove "float" from read commands, b/c Thermo bath returns letter 'C' via serial after temperature
 #WWD 30Mar2018
 #
@@ -50,15 +51,18 @@ def writecsv(filename,dateout,setout,tempout):	#input filename,note first line i
 # Begin by establishing a serial connection with the bath. The entry COM1 below
 # will need to be changed to suit your specific serial port name. On a Mac this
 # will be something like dev/tty.usbserial-xxxxxxx, on Windows it will be a
-# COM port like COM1. 
+# COM port like COM1. If using Windows cygwin dev/ttyS0 corresponds with COM1, etc.  
 
-#if running python from cygwin use this set of commands to figure out the port:
-# import serial.tools.list_ports
+# if running cygwin command line use this command to figure out the port:
+# python -m serial.tools.list_ports
+
+# if already in python use next 2 lines: 
+# import serial.tools.list_ports -v
 # print([comport.device for comport in serial.tools.list_ports.comports()])
 # for example on Dowd Mytilus laptop it returns ['/dev/ttyS9']
 try: 
     bath = serial.Serial(
-                        '/dev/ttyS9',  #COM4
+                        '/dev/ttyS10',  #'/dev/ttyS9' COM4
 						baudrate = 19200,
 						bytesize=8,
 						#parity="NONE",
