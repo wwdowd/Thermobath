@@ -1,11 +1,15 @@
 # NOTES: Originally based on Luke Miller's code for Cole Parmer bath.
+# Needed to remove "float" from His read commands, b/c Thermo bath returns letter 'C' via serial after temperature
+
 # NOTES: Use CAUTION THAT YOU KNOW WHICH PORT IS WHICH BATH.
-# TODO: Create TigBath01.csv, TigBath02.csv, etc with 1 header row
+# I look at Device Manager as plug in devices 1-by-1 and watch COM ports added. 
+# TODO: Create TigBath01.csv, TigBath02.csv, etc for all baths with 1 header row 'Temp'
+#  and 1 temperature per minute of the day
+# TODO: Read in setpoints as matrix of days/times rather than just one matrix same each day
 # TODO: Assign specific names to bath ports that are permanent? 
-# TODO: parallelize for 8 baths
+# TODO: parallelize for 8 baths; right now working for 2
 # TODO: Read remote temperature probe rather than bath temp
 # TODO: Set operation to remote probe
-#Needed to remove "float" from read commands, b/c Thermo bath returns letter 'C' via serial after temperature
 #WWD 02Apr2018
 #
 
@@ -124,8 +128,11 @@ while runflag != False: #runs forever
 		if continue_flag:
 				flag = False # set the while-loop flag, runs forever
 				while flag != True:
-					curr = datetime.datetime.now() #.strftime('%Y-%m-%d %H:%M:%S')
-					mintoday = int(curr.hour)*60+int(curr.minute)
+					if datetime.time(0,0,0): #midnight returns False in Python (=0)
+						mintoday = 1
+					else:
+						curr = datetime.datetime.now() #.strftime('%Y-%m-%d %H:%M:%S')
+						mintoday = int(curr.hour)*60+int(curr.minute)
 					print mintoday
 					set_temp = tempset[mintoday]
 					set_temp = float(set_temp[0])

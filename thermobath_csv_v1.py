@@ -57,7 +57,7 @@ def writecsv(filename,dateout,setout,tempout):	#input filename,note first line i
 # python -m serial.tools.list_ports
 
 # if already in python use next 2 lines: 
-# import serial.tools.list_ports -v
+# import serial.tools.list_ports
 # print([comport.device for comport in serial.tools.list_ports.comports()])
 # for example on Dowd Mytilus laptop it returns ['/dev/ttyS9']
 try: 
@@ -105,7 +105,11 @@ if continue_flag:
         bath.write("SO 1\r")# set status of bath to on/run
         response=bath.readline()
         while flag != True:
-            curr = datetime.datetime.now() #.strftime('%Y-%m-%d %H:%M:%S')
+            if datetime.time(0,0,0): #midnight returns False in Python (=0)
+                mintoday = 1
+            else:
+                curr = datetime.datetime.now() #.strftime('%Y-%m-%d %H:%M:%S')
+                mintoday = int(curr.hour)*60+int(curr.minute)curr = datetime.datetime.now() #.strftime('%Y-%m-%d %H:%M:%S')
             mintoday = int(curr.hour)*60+int(curr.minute)
             print mintoday
             set_temp = tempset[mintoday]
@@ -126,8 +130,10 @@ if continue_flag:
                 print "Setpoint set: %2.2f C" % response
             time.sleep(5)
             timewrite = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            #filetime = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
             bath.write("RT \r")
             readtemp = bath.readline()
             readtemp = float(response[0:5])
             outfile = bathID + "_record.csv"
+            #outfile = bathID + "_" + filetime + "_record.csv"
             writecsv(outfile,timewrite,set_temp,readtemp)#flag = True  # set True to kill while loop
