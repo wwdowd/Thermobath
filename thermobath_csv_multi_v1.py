@@ -128,13 +128,16 @@ while runflag != False: #runs forever
 		if continue_flag:
 				flag = False # set the while-loop flag, runs forever
 				while flag != True:
-					if datetime.time(0,0,0): #midnight returns False in Python (=0)
-						mintoday = 1
+					curr = datetime.datetime.now()
+					if (curr.hour == False & curr.minute  == False):
+						#datetime.time(0,0,0): #midnight returns False in Python
+						mintoday = int(2)
 					else:
-						curr = datetime.datetime.now() #.strftime('%Y-%m-%d %H:%M:%S')
-						mintoday = int(curr.hour)*60+int(curr.minute)
+						#curr = datetime.datetime.now() #.strftime('%Y-%m-%d %H:%M:%S')
+						mintoday = int(curr.hour)*60+int(curr.minute)+int(1)
 					print mintoday
 					set_temp = tempset[mintoday]
+					print "This is new setpoint: %s" %set_temp
 					set_temp = float(set_temp[0])
 					#print set_temp #troubleshooting conversion
 					print "Updating temp setpoint: %2.2f C" % set_temp
