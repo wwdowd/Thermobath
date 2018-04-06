@@ -129,12 +129,15 @@ while runflag != False: #runs forever
 				flag = False # set the while-loop flag, runs forever
 				while flag != True:
 					curr = datetime.datetime.now()
-					if (curr.hour == False & curr.minute  == False):
+					if (curr.hour == False): #curr.hour == False & curr.minute  == False):
 						#datetime.time(0,0,0): #midnight returns False in Python
-						mintoday = int(2)
+						if (curr.minute == False):
+							mintoday = int(2)
+						else: 
+							mintoday = int(curr.minute)+int(2)
 					else:
 						#curr = datetime.datetime.now() #.strftime('%Y-%m-%d %H:%M:%S')
-						mintoday = int(curr.hour)*60+int(curr.minute)+int(1)
+						mintoday = int(curr.hour)*60+int(curr.minute)+int(2)
 					print mintoday
 					set_temp = tempset[mintoday]
 					print "This is new setpoint: %s" %set_temp
