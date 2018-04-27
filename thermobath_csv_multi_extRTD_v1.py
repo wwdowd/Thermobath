@@ -2,7 +2,7 @@
 # Needed to remove "float" from His read commands, b/c Thermo bath returns letter 'C' via serial after temperature
 
 # NOTES: Use CAUTION THAT YOU KNOW WHICH PORT IS WHICH BATH.
-# I look at Device Manager as plug in devices 1-by-1 and watch COM ports added. 
+# I look at Device Manager as plug in devices 1-by-1 and watch COM ports added and note names. 
 # TODO: Create TigBath01.csv, TigBath02.csv, etc for all baths with 1 header row 'Temp'
 #  and 1 temperature per minute of the day
 # TODO: Read in setpoints as matrix of days/times rather than just one matrix same each day
@@ -52,6 +52,7 @@ def writecsv(filename,dateout,setout,tempout):	#input filename,note first line i
 # Useful commands for the water bath: 
 # RS\r = get current setpoint temperature
 # RT\r = get current internal bath temperature
+# RT2\r = get current external RTD probe temperature
 # SS xx.xx\r = change bath setpoint (i.e. SS 25.50, units of degrees Celsius)
 # SE1 = turn on command echo. It seems counterintuitive, but this seems to be
 #         necessary for this script to run.
@@ -94,13 +95,19 @@ while runflag != False: #runs forever
 			#bath.write("SE1\r") # turn on command echo
 			#response = bath.readline() # always read the response to clear the buffer
 			#print "SE0 response: %s" % response
-			bath.write("RT \r")
-			tempresponse = bath.readline()  #float
+			bath.write("SE 1\r") #set to external probe control
+			response=bath.readline()
+			bath.write("SAR 1\r") #tell bath to auto-restart if power lost
+			response=bath.readline()
+			bath.write("SPS M\r") #turn on pump at medium speed
+			response=bath.readline()
+			bath.write("RT2 \r")
+			external = bath.readline()  #float
 			bath.write("SO 1\r")# set status of bath to on/run
 			response=bath.readline()
 			bath.write("RS\r")
 			response = bath.readline()
-			print "Bath on, Current temperature: %s" % tempresponse  #reads response as string
+			print "Bath on, Current external temperature: %s" % external  #reads response as string
 			print "Current bath setpoint: %s" % response
 			continue_flag = True
 		except:
@@ -142,7 +149,7 @@ while runflag != False: #runs forever
 					set_temp = tempset[mintoday]
 					print "This is new setpoint: %s" %set_temp
 					set_temp = float(set_temp[0])
-					#print set_temp #troubleshooting conversion
+					#print set_temp #from troubleshooting conversion
 					print "Updating temp setpoint: %2.2f C" % set_temp
 					# Assemble the command to send to the water bath
 					command = "SS " + "%2.2f\r" % set_temp
@@ -159,7 +166,7 @@ while runflag != False: #runs forever
 					time.sleep(2)
 					timewrite = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 					#filetime = datetime.datetime.now().strftime('%Y%m%d%H%M%S')
-					bath.write("RT \r")
+					bath.write("RT2 \r")
 					readtemp = bath.readline()
 					readtemp = float(response[0:5])
 					outfile = baths[i] + "_record.csv"
