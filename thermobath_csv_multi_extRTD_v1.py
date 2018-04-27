@@ -8,8 +8,8 @@
 # TODO: Read in setpoints as matrix of days/times rather than just one matrix same each day
 # TODO: Assign specific names to bath ports that are permanent? 
 # TODO: parallelize for 8 baths; right now working for 2
-# TODO: Read remote temperature probe rather than bath temp
-# TODO: Set operation to remote probe
+# DONE: Read remote temperature probe rather than bath temp
+# DONE: Set operation to remote probe
 #WWD 02Apr2018
 #
 
