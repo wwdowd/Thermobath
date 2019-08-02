@@ -60,7 +60,9 @@ def writecsv(filename,dateout,setout,tempout):	#input filename,note first line i
 # Begin by establishing a serial connection with the bath(s). The entry COM1 below
 # will need to be changed to suit your specific serial port name. On a Mac this
 # will be something like dev/tty.usbserial-xxxxxxx, on Windows it will be a
-# COM port like COM1. If using Windows cygwin dev/ttyS0 corresponds with COM1, etc.  
+# COM port like COM1. If using Windows cygwin dev/ttyS0 corresponds with COM1, etc.
+# NOTE: in windows device manager it helps to renumber your ports in consecutive order
+# right click on a COM port, select "Advanced", then from the drop down list reorder the ports one by one as you attach devices
 
 # if running cygwin command line use this command to figure out the port:
 # python -m serial.tools.list_ports #-v option makes verbose output
@@ -71,13 +73,23 @@ portnames = ([comport.device for comport in serial.tools.list_ports.comports()])
 print portnames# for example on Dowd Mytilus laptop it returns ['/dev/ttyS9']
 
 
-#need TigBath01.csv, etc to correspond with list of baths included
-baths = ['TigBath01','TigBath02']
+# need TigBath01.csv, etc to correspond with list of baths included
+# baths = ['TigBath01','TigBath02']
+baths = ['TigBath01','TigBath02','TigBath03','TigBath04','TigBath05','TigBath06','TigBath07','TigBath08']
+#baths = ['TigBath05','TigBath06','TigBath07','TigBath08']
 print baths
+#UPDATE INITIAL AND FINISH BATH NUMBERS AS LABELLED ON FOLLOWING 2 LINES
+initial = 5
+finish = 8
+
+
+
 nobaths = len(baths)
+finish=finish #bath -1 b/c python counts from zero
+initial=initial-1 #-1 b/c python counts from zero
 runflag = True #tell program to go for it
 while runflag != False: #runs forever
-	for i in range(0, nobaths):#cycle through our list of baths
+	for i in range(initial, finish):#cycle through our list of baths, from 'start' to 'end'
 		try: 
 			bath = serial.Serial(
 								portnames[i], #'/dev/ttyS10',  #'/dev/ttyS9' COM4
@@ -160,6 +172,7 @@ while runflag != False: #runs forever
 					# Now check that the set point worked
 					bath.write("RS\r")
 					response = bath.readline()
+					print "Response was %s:" %response
 					new_point = float(response[0:5])
 					if response == set_temp:
 						print "Setpoint set: %2.2f C" % response
