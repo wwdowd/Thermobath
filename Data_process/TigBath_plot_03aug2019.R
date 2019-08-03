@@ -3,11 +3,12 @@ setwd("D:/My_documents/WSU/Experiments/Tigriopus/R code")
 myFile <- choose.files(default = "", caption = "Select 1 or more TigBathXX files",multi = TRUE)#file.choose()
 
 noFiles = length(myFile)
+noFiles = as.double(noFiles)
 
 if (noFiles <= 4) {
   par(mfrow=c(2,2))}
-if (noFiles > 4) {}
-    {par(mfrow=c(2,4))}
+if (noFiles >= 5) {
+    par(mfrow=c(2,4))}
 #datfile1 = "TigBath01_record.csv" 
 #datfile2 = "TigBath02_record.csv"
 #datfile = file.choose() #lets you interactively choose file
