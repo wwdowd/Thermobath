@@ -4,8 +4,8 @@ myFile <- choose.files(default = "", caption = "Select 1 or more TigBathXX files
 
 noFiles = length(myFile)
 
-if (noFiles < 4) {
-  par(mfrow=c(1,4))}
+if (noFiles <= 4) {
+  par(mfrow=c(2,2))}
 if (noFiles > 4) {}
     {par(mfrow=c(2,4))}
 #datfile1 = "TigBath01_record.csv" 
